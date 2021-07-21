@@ -1,0 +1,53 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  font-weight: 300;
+    overflow-x: hidden;
+}
+
+/*
+ * Formatting the header area
+ */
+
+header {
+   /* background-image: linear-gradient(rgba(0, 0, 0, 0.39),rgba(74, 74, 74, 0.8)), url(orange-img.jpg); */
+    overflow-x: scroll;
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    background-attachment: fixed;
+} 
+
+h1 {
+    color: #000000;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+table{
+  border:2px solid black;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2px;
+  border-spacing: 40px;
+
+}
+th {
+  font-size: 20;
+  background: grey;
+  color: white;
+  position: sticky;
+  top: 0; /* Don't forget this, required for the stickiness */
+  box-shadow: 0 2px 2px -1px rgba(200, 230, 210, 0);
+}
+td {
+  text-align: center;
+  color: black;
+  font-size: 15;
+}
+
+.separation {
+    text-align: center;
+}

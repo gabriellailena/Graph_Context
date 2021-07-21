@@ -1,0 +1,170 @@
+{
+  "Pump Out Program": {
+    "sensors": {
+      "Water Flow Sensor": {
+        "states": [
+          "No Flow",
+          "Flow OK"
+        ]
+      },
+      "Water Fill Level Sensor": {
+        "states": [
+          "Low",
+          "High"
+        ]
+      }
+    },
+    "actuators": "Drain Pump"
+  },
+  "Door Lock Program": {
+    "sensors": {
+      "Pressure Sensor": {
+        "states": [
+          "Low",
+          "Normal"
+        ]
+      },
+      "Door Lock Sensor": {
+        "states": [
+          "Unlocked",
+          "Locked"
+        ]
+      }
+    },
+    "actuators": "Door Lock"
+  },
+  "Fan Program": {
+    "sensors": {
+      "Loudness Sensor": {
+        "states": [
+          "Normal",
+          "High"
+        ]
+      },
+      "Vibration Sensor": {
+        "states": [
+          "Normal",
+          "High"
+        ]
+      },
+      "Mass Air Flow Sensor": {
+        "states": [
+          "Low",
+          "Normal"
+        ]
+      }
+    },
+    "actuators": "Blower"
+  },
+  "Drum Motor Program": {
+    "sensors": {
+      "Loudness Sensor": {
+        "states": [
+          "Normal",
+          "High"
+        ]
+      },
+      "Vibration Sensor": {
+        "states": [
+          "Normal",
+          "High"
+        ]
+      },
+      "Rotation Speed Sensor": {
+        "states": [
+          "Low",
+          "Normal",
+          "High"
+        ]
+      }
+    },
+    "actuators": "Drum Motor"
+  },
+  "Water Inlet Program": {
+    "sensors": {
+      "Water Flow Sensor": {
+        "states": [
+          "No Flow",
+          "Flow OK"
+        ]
+      },
+      "Water Fill Level Sensor": {
+        "states": [
+          "Low",
+          "Normal"
+        ]
+      }
+    },
+    "actuators": "Water Inlet Valve",
+    "external": {
+      "Water Hardness Level": {
+        "states": [
+          "Soft",
+          "Normal",
+          "Hard"
+        ]
+      }
+    }
+  },
+  "Long Time Check": {
+    "sensors": {
+      "Temperature Sensor": {
+        "states": [
+          "Low",
+          "Normal",
+          "High"
+        ]
+      },
+      "Laundry Fill Level Sensor": {
+        "states": [
+          "Low",
+          "Normal",
+          "High"
+        ]
+      },
+      "Laundry Weight Sensor": {
+        "states": [
+          "Normal",
+          "High"
+        ]
+      },
+      "Washing Powder Fill Level Sensor": {
+        "states": [
+          "Low",
+          "Normal",
+          "High"
+        ]
+      }
+    },
+    "actuators": null,
+    "external": {
+      "Water Hardness Level": {
+        "states": [
+          "Soft",
+          "Normal",
+          "Hard"
+        ]
+      },
+      "Washing Powder Type": {
+        "states": [
+          "Weak",
+          "Strong"
+        ]
+      },
+      "Usage Frequency": {
+        "states": [
+          "Low",
+          "Normal",
+          "High"
+        ]
+      },
+      "Used Modes": {
+        "states": [
+          "Delicate",
+          "Normal",
+          "Deep Clean"
+        ]
+      }
+    }
+  }
+}

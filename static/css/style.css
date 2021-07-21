@@ -1,0 +1,128 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  font-weight: 300;
+    overflow-x: hidden;
+}
+
+/*
+ * Formatting the header area
+ */
+
+header {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.39),rgba(74, 74, 74, 0.8));
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    background-attachment: fixed;
+}
+
+
+/*
+header h1.logo {
+  margin: 0;
+  font-size: 1.7em;
+  color: #fff;
+  text-transform: uppercase;
+  float: left;
+}
+
+header h1.logo:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+*/
+
+/*
+ * Centering the body content
+ */
+
+/*
+.container {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+div.index {
+  padding: 10px 0 30px 0;
+  background-color: #E6E6FA;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+}
+
+div.about {
+  padding: 10px 0 30px 0;
+  background-color: #E6E6FA;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+}
+
+h2.index {
+  font-size: 3em;
+  margin-top: 40px;
+  text-align: center;
+  letter-spacing: -2px;
+}
+
+h3 {
+  font-size: 1.7em;
+  font-weight: 100;
+  margin-top: 30px;
+  text-align: center;
+  letter-spacing: -1px;
+  color: #999;
+}
+
+.menu {
+  float: right;
+  margin-top: 8px;
+}
+
+.menu li {
+  display: inline;
+}
+
+.menu li + li {
+  margin-left: 35px;
+}
+
+.menu li a {
+  color: #444;
+  text-decoration: none;
+}
+
+.data {
+  overflow-y: scroll;
+
+}
+
+h1.data {
+  font-size: 6em;
+  margin-top: 40px;
+  text-align: center;
+  letter-spacing: -2px;
+  color: #999;
+}
+
+*/
+
+h2 {
+    color: #ffffff;
+    font-size: 40px;
+    padding: 15px;
+    margin-top: 15%;
+    text-align: center;
+    color: #fdfdfd;
+    text-transform: uppercase;
+}
+
+a:hover, 
+a:active {
+    color: #555555;
+    border-bottom: 1px solid transparent;
+}

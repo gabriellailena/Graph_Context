@@ -6,6 +6,7 @@ import os
 import time
 from contextmodel.contextmodel import contextmodel
 from contextmodel.sql_preprocessing import sql_to_graph
+from contextmodel.context_analysis import analyze_context
 app = Flask(__name__)
 
 # Configure MySQL db
@@ -18,7 +19,6 @@ uri = "bolt://localhost:7687"
 username = "admin"
 password = "admin"
 graph_db = "rdfmodel"
-
 
 @app.route('/', methods=['GET','POST'])
 def index():
@@ -57,33 +57,37 @@ def index():
 			jsondata['subresult'] = subresult
 			jsondata['passresult'] = resultpass
 
+			# Exports sql data to .csv
+			t0 = time.clock()
+			out_path = "C:\\Users\\ilena\\.Neo4jDesktop\\relate-data\\dbmss\\dbms-1a688a58-6f36-4dce-99e7-a26342fefc17\\import\\contextdata.csv"
+			sql_to_graph(uri=uri, username=username, password=password, connection=conn, file_path=out_path,
+						 db_name=graph_db)
+			t1 = time.clock() - t0
+			print("Export finished in ", t1, "seconds.")
+
 			# Stores result into pickle
 			filename = os.path.dirname(__file__) + "\\contextmodel\\contextdata\\Result\\contextresultjson.txt"
 			with open(filename, "wb") as fp:   # Pickling
 				pickle.dump(jsondata, fp)
 			return "Success!!!"
 
-	else:
-		# Exports sql data to .csv
-		t0 = time.clock()
-		out_path = "C:\\Users\\ilena\\.Neo4jDesktop\\relate-data\\dbmss\\dbms-1a688a58-6f36-4dce-99e7-a26342fefc17\\import\\contextdata.csv"
-		sql_to_graph(uri=uri, username=username, password=password, connection=conn, file_path=out_path,
-					 db_name=graph_db)
-		t1 = time.clock() - t0
-		print("Export finished in ", t1, "seconds.")
 
+	else:
 		return render_template('index.html')
 
-@app.route('/contextdata')
-def fetchContextData():
-	# Fetches the context data from MySQL and displays it on webpage
-	session = db.session()
-	query_res = session.execute("SELECT * FROM contextdata")
-	if query_res is None:
-		print("No data are found.")
-	else:
-		data = query_res.fetchall()
-		return render_template('contextdata.html', data=data)
+@app.route('/diagnosis_result')
+def show_analysis_results():
+	result = analyze_context(uri=uri, username=username, password=password, db_name=graph_db)
+	return render_template('diagnosis.html', result=result)
+
+@app.route('/usage')
+def show_usage():
+	result = analyze_context(uri=uri, username=username, password=password, db_name=graph_db)
+	return render_template('usage.html', result=result)
+
+@app.route('/context_model')
+def show_viz():
+	return render_template('model_visualization.html')
 
 @app.route("/contextresult")
 def sendresultjson():
@@ -105,7 +109,6 @@ def getdeletejson():
 		os.remove(filename)
 	except Exception:
 		pass
-
 
 
 if __name__ == '__main__':

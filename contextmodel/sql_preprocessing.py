@@ -38,9 +38,9 @@ def csv_to_graph(uri, username, password, db_name):
         print("Cannot establish connection to graph database!")
 
     # Deletes existing instances to be replaced with new ones
-    graph_session.run("""MATCH(d:n4sch__Instance)
-                    MATCH(n:n4sch__Instance)-[]-(v:n4sch__Value) 
-                    DETACH DELETE d, n, v""")
+    graph_session.run("""
+                    MATCH(d:n4sch__Instance)-[]-(v:n4sch__Value) 
+                    DETACH DELETE d, v""")
 
     # Cypher query to load the CSV
     print("Exporting .csv data to graph...")

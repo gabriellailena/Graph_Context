@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}Usage{% endblock %}
+{% block head %} {{ super() }} {% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row" style="padding-top:60px">
+        <h1 class="display-5">Optimize Machine Usage</h1>
+        <div class="col-md-8">
+            <p style="text-align:justify">Have you been using the washing machine in an optimal way?
+                Here is an overview of your usage data and how you can change your washing habits
+                to use the machine more efficiently.</p>
+        </div>
+    </div>
+    <div class="row" style="padding-top:20px; padding-left:10px">
+        <div class="col-md-4">
+            {% for key1, value1 in result.items() %}
+                {% if key1 == "Long Time Check" %}
+                    {% for key2, value2 in value1.items() %}
+                            <ul class="list-group list-group-horizontal">
+                            {% if key2 != "Message" and key2 != "Time" %}
+                                <li class="list-group-item w-50 fw-bold">{{ key2|replace('_',' ') }}</li>
+                                <li class="list-group-item flex-fill">{{ value2 }}</li>
+                            {% endif %}
+                            </ul>
+                    {% endfor %}
+                    <p class="fw-light fst-italic">Last checked on: {{ value1["Time"] }}</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h3>Suggestions:</h3>
+                {% for key1, value1 in result.items() %}
+                    {% if key1 == "Long Time Check" %}
+                        {% set msg_list = value1["Message"].split('|') %}
+                            <ul style="list-style: circle">
+                                {% for item in msg_list %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                    {% endif %}
+                {% endfor %}
+            </div>
+    </div>
+</div>
+{% endblock %}

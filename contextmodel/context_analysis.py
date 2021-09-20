@@ -1,500 +1,723 @@
-import os
 import json
+import time as sys_time
+import os
 from neo4j import GraphDatabase
-from datetime import datetime
 
-# Function declarations
-def get_instances_names(session, program_name, class_name):
-    query = """MATCH (e)-[:IS_TYPE]-(:n4sch__Class{n4sch__name:$class_name})
-            WHERE exists(e.mode) AND $program in e.mode
-            RETURN DISTINCT e.n4sch__name"""
-    result = session.run(query, program=program_name, class_name=class_name)
-    return result
 
-def get_average_value(session, program_name, context_name, phase):
-    query = """MATCH (d:n4sch__Instance)-[:HAS_VALUE]-(v:n4sch__Value)
-            WHERE d.mode = $program AND d.n4sch__name = $context AND v.phase = $phase
-            RETURN AVG(v.value)"""
-    result = session.run(query, program=program_name, context=context_name, phase=phase)
-    return result.single()[0]
+def get_values(session, program_name, cur_time):
+    query = """MATCH (n:n4sch__Instance{mode:$program})-
+    [:HAS_AVERAGE_VALUE]-(v) 
+    WHERE v.time = datetime($time) AND v.checked = 0
+    SET v.checked = 1 
+    RETURN DISTINCT n.n4sch__name, v.value, v.phase, v.unit"""
+    value_result = session.run(query, program=program_name, time=cur_time)
 
-def get_time_string(session, program_name):
-    query = """MATCH (d:n4sch__Instance)-[:HAS_VALUE]-(v:n4sch__Value)
+    res = dict()
+    for res_item in value_result:
+        if res_item[0] not in res:
+            res[res_item[0]] = {res_item[2]: res_item[1], "unit": res_item[3]}
+        else:
+            res[res_item[0]].update({res_item[2]: res_item[1], "unit": res_item[3]})
+    return res
+
+
+def get_time(session, program_name):
+    query = """
+            MATCH (d:n4sch__Instance)-[:HAS_AVERAGE_VALUE]-(v:n4sch__Value)
+            WHERE d.mode = $program and v.checked = 0
+            RETURN DISTINCT toString(v.time)
+            """
+    time_result = session.run(query, program=program_name)
+
+    return time_result
+
+
+def get_latest_time(session, program_name):
+    query = """
+            MATCH (d:n4sch__Instance)-[:HAS_AVERAGE_VALUE]-(v:n4sch__Value)
             WHERE d.mode = $program
-            RETURN DISTINCT v.time"""
-    result = session.run(query, program=program_name)
+            RETURN DISTINCT toString(max(v.time))
+            """
+    time_result = session.run(query, program=program_name)
 
-    # Format to string
-    dt = result.single()[0]
-    dt_py = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, int(dt.second))
-    time_formatted = dt_py.strftime('%d/%m/%y %H:%M:%S')
-
-    return time_formatted
+    return time_result
 
 
-# Configure Neo4j db
-# noinspection PyUnresolvedReferences
+def check_anomaly(session, states):
+    # Format list of dictionaries to match the Cypher query format
+    defect = session.run("""
+        WITH $states as nodes
+        UNWIND nodes as node
+        MATCH (st:n4sch__Instance{n4sch__name:node.name, source:node.source}) - [:HAS_COMBINATION] - (co) - [:CAUSES_ANOMALY] - (a)
+        WITH a, co, size(nodes) as inputCnt, count(DISTINCT st) as cnt
+        WHERE cnt = inputCnt
+        RETURN a.n4sch__name, co.combo_id
+    """, states=states)
+    return defect
+
+
+def check_suggestion(session, states):
+    suggestions = session.run("""
+        WITH $states as nodes
+        UNWIND nodes as node
+        MATCH (st:n4sch__Instance{n4sch__name:node.name, source:node.source}) - [:HAS_COMBINATION] - (co) - [:SUGGESTS] - (a)
+        WITH a, co, size(nodes) as inputCnt, count(DISTINCT st) as cnt
+        WHERE cnt = inputCnt
+        RETURN a.n4sch__name
+    """, states=states)
+    return suggestions
+
+
+def get_anomaly_message(session, program, message_cause, message_type):
+    if message_type.lower() == "error":
+        if "actuator" in message_cause.lower():
+            component = "Actuator"
+        elif "sensor" in message_cause.lower():
+            component = "Sensor"
+        else:
+            component = ""
+        message = session.run("""MATCH (e:n4sch__Instance{mode: $program})-[:IS_TYPE]-(:n4sch__Class{n4sch__name:$component})
+            WITH collect(e.n4sch__name) as components
+            MATCH (m) - [:IS_TYPE] - (:n4sch__Class{n4sch__name:"Message"})
+            WHERE $message_cause in m.cause
+            RETURN replace(m.message, "-foo-", apoc.text.join(components, ', '))""",
+                    component=component, program=program,
+                    message_cause=message_cause)
+    elif message_type.lower() == "normal":
+        message = session.run("""WITH ["Actuator", "Sensor"] as components
+            UNWIND components as component
+            MATCH (e:n4sch__Instance{mode:$program})-[:IS_TYPE]-(:n4sch__Class{n4sch__name:component})
+            WITH collect(e.n4sch__name) as components
+            MATCH (m:n4sch__Instance{n4sch__name:"Normal message"}) - [:IS_TYPE] - (:n4sch__Class{n4sch__name:"Message"})
+            RETURN replace(m.message, "-foo-", apoc.text.join(components, ', '))""",
+                    program=program)
+    else:
+        print("Message type needs to be either 'error' or  'normal'.")
+    return message
+
+
+def get_suggestion_message(session, context, message_cause, message_type):
+    if message_type.lower() == "optimal":
+        message = session.run("""WITH $context as context
+                    MATCH (m:n4sch__Instance{n4sch__name:"Optimal message"}) - [:IS_TYPE] - (:n4sch__Class{n4sch__name:"Message"})
+                    RETURN replace(m.message, "-foo-", apoc.text.join(context, ', '))""", context=context)
+    elif message_type.lower() == "suggestion":
+        message = session.run("""WITH $message_cause as cause
+                    UNWIND cause as cs
+                    MATCH (m) - [:IS_TYPE] - (:n4sch__Class{n4sch__name:"Message"})
+                    WHERE cs in m.cause
+                    RETURN m.message""", message_cause=message_cause)
+    else:
+        print("Message type needs to be either 'optimal' or 'suggestion'.")
+    return message
+
+
+def update_time_property(session, combo_id, message_cause, program, time):
+    if "actuator" in message_cause.lower():
+        component = "Actuator"
+    elif "sensor" in message_cause.lower():
+        component = "Sensor"
+    else:
+        component = ""
+    session.run("""MATCH (e:n4sch__Instance{mode: $program})-[:IS_TYPE]-(:n4sch__Class{n4sch__name:$component})
+            MATCH (cs:n4sch__Instance{n4sch__name:$message_cause})
+            MERGE (e) - [r:HAS_DEFECT] -> (cs)
+            ON CREATE SET r.time = []
+            ON MATCH SET r.time = CASE WHEN NOT datetime($time) IN r.time THEN r.time + datetime($time) END
+            """, program=program, component=component,
+                message_cause=message_cause, time=time)
+
+    session.run("""MATCH (co:n4sch__Combination{combo_id:$id}) - [r:CAUSES_ANOMALY{mode:$program}] - (a)
+            FOREACH(x in CASE WHEN datetime($time) in r.time THEN [] ELSE [1] END | 
+                SET r.time = r.time + datetime($time));        
+        """, id=combo_id, program=program, time=time)
+
+    return
+
+
+def update_state_time(session, program, current_state, time):
+    for item in current_state:
+        session.run("""MATCH (n:n4sch__Instance{n4sch__name:$source})-[r:YIELDS_STATE]-(m:n4sch__Instance{n4sch__name:$state})
+        WHERE n.mode = $program
+        SET r.time = CASE WHEN NOT datetime($time) IN r.time THEN r.time + datetime($time) ELSE r.time END""",
+                    source=item['source'], state=item['name'], program=program, time=time)
+    return
+
+
+def update_value_ranges(session):
+    session.run("""MATCH (n:n4sch__Instance)-[:HAS_AVERAGE_VALUE]-(v:n4sch__Value) 
+        MATCH (n)-[r:YIELDS_STATE]-(m)
+        WHERE v.time in r.time
+        WITH n.mode as program, n.n4sch__name as context_element, v.phase as phase, "range_phase_" + v.phase as phase_range, m as m, MIN(v.value) AS min_value, MAX(v.value) as max_value
+        CALL apoc.create.setProperty(m, phase_range, [min_value, max_value]) YIELD node RETURN node""")
+    return
+
+
+def check_real_value_range(session, context, value, state, program):
+    print("Checking: ", context, value)
+    print("Current state: ", state)
+    query_result = session.run("""MATCH (m:n4sch__Instance{mode:$program})-[:YIELDS_STATE]-(n) 
+            WHERE ANY(x IN KEYS(n) WHERE x =~"range_phase.*") AND n.source = $context_element 
+            WITH n, [x IN KEYS(n) WHERE x =~"range_phase.*" | x] AS nKeys
+            RETURN n.n4sch__name as state, apoc.map.submap(n, nKeys) as submap
+            """, context_element=context, program=program)
+
+    if query_result.peek() is not None:
+        state_range = dict()
+        for item in query_result:
+            state_range[item[0]] = item[1]
+
+        print("Possible state ranges: ", state_range[state])
+
+        if state in state_range:
+            for ranges in state_range[state]:
+                flag_warn = False
+                if '1' in ranges and '1' in value:
+                    if state_range[state][ranges][0] <= value['1'] <= state_range[state][ranges][1]:
+                        print("Value of phase 1 is in the expected range.")
+                    else:
+                        flag_warn = True
+                elif '2' in ranges and '2' in value:
+                    if state_range[state][ranges][0] <= value['2'] <= state_range[state][ranges][1]:
+                        print("Value of phase 2 is in the expected range.")
+                    else:
+                        flag_warn = True
+                elif '3' in ranges and '3' in value:
+                    if state_range[state][ranges][0] <= value['3'] <= state_range[state][ranges][1]:
+                        print("Value of phase 3 is in the expected range.")
+                    else:
+                        flag_warn = True
+                else:
+                    print("Phase does not exist.")
+            if flag_warn:
+                print("Warning: value is outside of the normally outputted range. Check the data and components "
+                      "for possible underlying cause of concern.")
+            else:
+                update_value_ranges(session)
+        else:
+            print("No range per phase is recorded yet for this context element.")
+
+    return
+
+
 def analyze_context(uri, username, password, db_name):
     # Connect to graph database
     graph_driver = GraphDatabase.driver(uri, auth=(username, password))
-    try:
-        graph_session = graph_driver.session(database=db_name)
-    except Exception as e:
-        print(str(e))
-        print("Cannot establish connection to graph database!")
+    graph_session = graph_driver.session(database=db_name)
+    print("Connected.")
 
     # Get program names
-    query_res = graph_session.run("""MATCH (:n4sch__Class{n4sch__name:"Context"})-[*]-(n:n4sch__Instance) WHERE size(n.mode) > 2 
-                RETURN DISTINCT n.mode""")
+    query_res = graph_session.run("""MATCH (:n4sch__Class{n4sch__name:"Context"})<-[:n4sch__SCO]-(m)-[:IS_TYPE]-(n:n4sch__Instance) WHERE size(n.mode) > 2 
+            RETURN DISTINCT n.mode""")
     programs = list()
     for item in query_res:
         programs.append(item[0])
 
-    # Get the related context data, sensors, and actuators to the program
-    program_instances = dict((el, {"sensors": None, "actuators": None, "context": None}) for el in programs)
-    for program in programs:
-        sensor_list = list()
-        actuator_list = list()
-        context_dict = dict((el, []) for el in ["internal", "inferred", "external"])
-        sensors = get_instances_names(graph_session, program, "Sensor")
-        actuators = get_instances_names(graph_session, program, "Actuator")
-        internal = get_instances_names(graph_session, program, "Internal")
-        inferred = get_instances_names(graph_session, program, "Inferred")
-        external = get_instances_names(graph_session, program, "External")
-        for item in sensors:
-            sensor_list.append(item[0])
-        for item in actuators:
-            actuator_list.append(item[0])
-        for item in internal:
-            context_dict["internal"].append(item[0])
-        for item in inferred:
-            context_dict["inferred"].append(item[0])
-        for item in external:
-            context_dict["external"].append(item[0])
-        program_instances[program]["sensors"] = sensor_list
-        program_instances[program]["actuators"] = actuator_list
-        program_instances[program]["context"] = context_dict
-
     # Query the graph database for latest measurements of each program
     result_program = dict()
+    count_incomplete = 0 # If context data are incomplete, count them
+
+    # Get results of all previously run programs, if exist
+    if os.path.exists("result_program.json"):
+        with open('result_program.json', 'r') as fb:
+            all_results = json.load(fb)
+    else:
+        all_results = dict((el, []) for el in programs)
+
+    # Start counting execution time
+    t0 = sys_time.process_time()
     for selected_program in programs:
-        if selected_program in program_instances:
-            context = program_instances[selected_program]["context"]
-            context_names = list()
 
-            for key in context:
-                if len(context[key]) > 0:
-                    for i in range(len(context[key])):
-                        context_names.append(context[key][i])
+        # Get only the un-analyzed values of the selected program
+        query_time = get_time(graph_session, selected_program)
+        time_list = list()
 
-            # Get average values of each context data
-            subresult = dict()
+        for item in query_time:
+            time_list.append(item[0])
+
+        if len(time_list) > 0:
+            program_results = list()
+
+            # Creating states based on values, with conditions depending on each program
             if selected_program == "Pump Out Program":
-                flag_water_flow = False
-                flag_water_level = False
-                for name in context_names:
-                    avg = list()  # index 0 for phase 1, index 1 for phase 2, index 2 for phase 3
-                    avg.append(get_average_value(graph_session, selected_program, name, "1"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "2"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "3"))
+                for time in time_list:
+                    subresult = dict()
+                    values = get_values(graph_session, selected_program, time)
+                    current_state = list()
 
-                    if name == "Water_Level":
-                        if avg[0] - avg[2] <= 30:
-                            subresult[name] = "High"
-                            flag_water_level = True
-                        else:
-                            subresult[name] = "Low"
-                    elif name == "Exit_Water_Flow":
-                        if avg[1] == 0:
-                            subresult[name] = "No Flow"
-                            flag_water_flow = True
-                        else:
-                            subresult[name] = "Flow OK"
-
-                    if flag_water_level and flag_water_flow:
-                        subresult["Message"] = "Suspected clogging! Please check " + \
-                                               program_instances[selected_program]["actuators"][0] + " for possible defect or necessary maintenance!"
-                    elif flag_water_level ^ flag_water_flow:
-                        subresult["Message"] = "Possible sensor defect, please check the following sensors: " + \
-                                                ', '.join(program_instances[selected_program]["sensors"])
+                    if len(values) < 2:
+                        count_incomplete += 1
                     else:
-                        subresult["Message"] = ', '.join(program_instances[selected_program]["sensors"]) + " and " + \
-                                               program_instances[selected_program]["actuators"][0] + " are working properly."
-                subresult["Time"] = get_time_string(graph_session, selected_program)
+                        for key, value in values.items():
+                            if key == 'Water_Level':
+                                if value['1'] - value['3'] <= 30:
+                                    subresult[key] = 'High'
+                                else:
+                                    subresult[key] = 'Low'
+                            else:
+                                if value['2'] == 0:
+                                    subresult[key] = 'No Flow'
+                                else:
+                                    subresult[key] = 'Flow OK'
+                            check_real_value_range(session=graph_session, context=key,
+                                                   value=value, state=subresult[key], program=selected_program)
+                            current_state.append({'name': subresult[key], 'source': key})
+
+                        # Update state time for the YIELDS_STATE relationship
+                        update_state_time(session=graph_session, program=selected_program, current_state=current_state, time=time)
+
+                        # Check for anomaly based on current states
+                        defect = check_anomaly(session=graph_session, states=current_state)
+                        if defect.peek() is not None:
+                            # Get anomaly message
+                            msg_list = list()
+                            for item in defect:
+                                subresult["Anomaly"] = item[0]
+                                combo_id = item[1]
+
+                            msg = get_anomaly_message(session=graph_session, program=selected_program, message_cause=subresult["Anomaly"], message_type="Error")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                            # Update the time property in the anomaly relationship with the current time
+                            update_time_property(session=graph_session, message_cause=subresult["Anomaly"],
+                                                 combo_id=combo_id, program=selected_program, time=time)
+                        else:
+                            # Get normal message
+                            subresult["Anomaly"] = None
+                            msg_list = list()
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                message_cause="", message_type="Normal")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                        subresult["Time"] = time
+                        subresult["Message"] = msg_list
+                        program_results.append(subresult)
             elif selected_program == "Door Lock Program":
-                flag_pressure = False
-                flag_lock = False
-                for name in context_names:
-                    avg = list()  # index 0 for phase 1, index 1 for phase 2, index 2 for phase 3
-                    avg.append(get_average_value(graph_session, selected_program, name, "1"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "2"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "3"))
+                for time in time_list:
+                    subresult = dict()
+                    values = get_values(graph_session, selected_program, time)
+                    current_state = list()
 
-                    if name == "Pressure":
-                        if ((avg[1] - avg[0])/avg[0]) >= 0.2:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "Low"
-                            flag_pressure = True
-                    elif name == "Lock":
-                        if avg[1] == 1:
-                            subresult[name] = "Locked"
-                        else:
-                            subresult[name] = "Unlocked"
-                            flag_lock = True
-
-                    if flag_pressure:
-                        if flag_lock:
-                            subresult["Message"] = "Please check " + \
-                                                   program_instances[selected_program]["actuators"][0] + \
-                                                   "for possible defect or necessary maintenance."
-                        else:
-                            subresult["Message"] = "Possible sensor defect, please check the following sensors: " + \
-                                                ', '.join(program_instances[selected_program]["sensors"])
+                    # Generate states based on average values
+                    if len(values) < 2:
+                        count_incomplete += 1
                     else:
-                        if not flag_lock:
-                            subresult["Message"] = ', '.join(program_instances[selected_program]["sensors"]) + " and " + \
-                                                   program_instances[selected_program]["actuators"][0] + " are working properly."
-                        else:
-                            subresult["Message"] = subresult["Message"] = "Possible sensor defect, please check the following sensors: " + \
-                                                ', '.join(program_instances[selected_program]["sensors"])
+                        for key, value in values.items():
+                            if key == "Pressure":
+                                if ((value['2'] - value['1'])/value['1']) >= 0.2:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "Low"
+                            elif key == "Lock":
+                                if value['2'] == 1:
+                                    subresult[key] = "Locked"
+                                else:
+                                    subresult[key] = "Unlocked"
+                            check_real_value_range(session=graph_session, context=key,
+                                                   value=value, state=subresult[key], program=selected_program)
+                            current_state.append({'name': subresult[key], 'source': key})
 
-                subresult["Time"] = get_time_string(graph_session, selected_program)
+                        # Update state time for the YIELDS_STATE relationship
+                        update_state_time(session=graph_session, program=selected_program,
+                                              current_state=current_state, time=time)
+
+                        # Check for anomaly based on current states
+                        defect = check_anomaly(session=graph_session, states=current_state)
+                        if defect.peek() is not None:
+                            # Get anomaly message
+                            msg_list = list()
+                            for item in defect:
+                                subresult["Anomaly"] = item[0]
+                                combo_id = item[1]
+
+                            msg = get_anomaly_message(session=graph_session, program=selected_program, message_cause=subresult["Anomaly"], message_type="Error")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                            # Update the time property in the anomaly relationship with the current time
+                            update_time_property(session=graph_session, message_cause=subresult["Anomaly"],
+                                                 combo_id=combo_id, program=selected_program, time=time)
+                        else:
+                            # Get normal message
+                            subresult["Anomaly"] = None
+                            msg_list = list()
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                message_cause="", message_type="Normal")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                        subresult["Time"] = time
+                        subresult["Message"] = msg_list
+                        program_results.append(subresult)
             elif selected_program == "Fan Program":
-                flag_vibration = False
-                flag_loudness = False
-                flag_air_flow = False
-                for name in context_names:
-                    avg = list()
-                    avg.append(get_average_value(graph_session, selected_program, name, "1"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "2"))
+                for time in time_list:
+                    subresult = dict()
+                    values = get_values(graph_session, selected_program, time)
+                    current_state = list()
 
-                    if name == "Vibration":
-                        if avg[1] <= 25:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "High"
-                            flag_vibration = True
-                    elif name == "Loudness":
-                        if ((avg[1]-avg[0])/avg[0]) <= 0.75:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "High"
-                            flag_loudness = True
-                    elif name == "Mass_Air_Flow":
-                        if avg[1] >= 50:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "Low"
-                            flag_air_flow = True
-
-                    if flag_loudness and flag_vibration:
-                        if flag_air_flow:
-                            subresult["Message"] = "Please check " + program_instances[selected_program]["actuators"][0] + " for defect or necessary maintenance!"
-                        else:
-                            subresult["Message"] = "Please check if foreign objects are inside the " + program_instances[selected_program]["actuators"][0]
-                    elif flag_loudness and not flag_vibration:
-                        subresult["Message"] = "Please check " + program_instances[selected_program]["actuators"][0] + " for defect or necessary maintenance!"
-                    elif not flag_loudness and flag_vibration:
-                        if flag_air_flow:
-                            subresult["Message"] = "Please check " + program_instances[selected_program]["actuators"][0] + " for defect or necessary maintenance!"
-                        else:
-                            subresult["Message"] = "Please re-adjust the drum position."
+                    # Generate states based on average values
+                    if len(values) < 3:
+                        count_incomplete += 1
                     else:
-                        subresult["Message"] = ', '.join(program_instances[selected_program]["sensors"]) + " and " + \
-                                               program_instances[selected_program]["actuators"][0] + " are working properly."
+                        for key, value in values.items():
+                            if key == "Vibration":
+                                if value['2'] <= 25:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "High"
+                            elif key == "Loudness":
+                                if ((value['2'] - value['1']) / value['1']) <= 0.75:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "High"
+                            elif key == "Mass_Air_Flow":
+                                if value['2'] >= 50:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "Low"
+                            check_real_value_range(session=graph_session, context=key,
+                                                   value=value, state=subresult[key], program=selected_program)
+                            current_state.append({'name': subresult[key], 'source': key})
 
-                subresult["Time"] = get_time_string(graph_session, selected_program)
-            elif selected_program == "Water Inlet Program":
-                flag_water_level = False
-                flag_water_flow = False
-                flag_water_hardness = False
-                for name in context_names:
-                    avg = list()
-                    avg.append(get_average_value(graph_session, selected_program, name, "1"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "2"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "3"))
+                        # Update state time for the YIELDS_STATE relationship
+                        update_state_time(session=graph_session, program=selected_program,
+                                              current_state=current_state, time=time)
 
-                    if name == "Water_Level":
-                        if avg[2] - avg[0] >= 20:
-                            subresult[name] = "Normal"
+                        # Check for anomaly based on current states
+                        defect = check_anomaly(session=graph_session, states=current_state)
+                        if defect.peek() is not None:
+                            # Get anomaly message
+                            msg_list = list()
+                            for item in defect:
+                                subresult["Anomaly"] = item[0]
+                                combo_id = item[1]
+
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause=subresult["Anomaly"], message_type="Error")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                            # Update the time property in the anomaly relationship with the current time
+                            update_time_property(session=graph_session, message_cause=subresult["Anomaly"],
+                                                 combo_id=combo_id, program=selected_program, time=time)
                         else:
-                            subresult[name] = "Low"
-                            flag_water_level = True
-                    elif name == "Entrance_Water_Flow":
-                        if avg[1] == 0.:
-                            subresult[name] = "No Flow"
-                            flag_water_flow = True
-                        else:
-                            subresult[name] = "Flow OK"
-                    elif name == "Water_Hardness":
-                        if avg[2] <= 14:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "Hard"
-                            flag_water_hardness = True
+                            # Get normal message
+                            subresult["Anomaly"] = None
+                            msg_list = list()
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause="", message_type="Normal")
+                            for item in msg:
+                                msg_list.append(item[0])
 
-                    if flag_water_hardness:
-                        msg = " High water calcium level detected; running the diagnosis app more often is recommended."
-                    else:
-                        msg = ""
-
-                    if flag_water_level and flag_water_flow:
-                        subresult["Message"] = "Suspected clogging! Please check " + \
-                                                program_instances[selected_program]["actuators"][0] + \
-                                               "for possible defect or necessary maintenance." + msg
-                    elif flag_water_level ^ flag_water_flow:
-                        subresult["Message"] = "Possible sensor defect, please check the following sensors: " + \
-                                         ', '.join(program_instances[selected_program]["sensors"]) + msg
-                    else:
-                        subresult["Message"] = ', '.join(program_instances[selected_program]["sensors"]) + " and " + \
-                                               program_instances[selected_program]["actuators"][0] + " are working properly." + msg
-                subresult["Time"] = get_time_string(graph_session, selected_program)
+                        subresult["Time"] = time
+                        subresult["Message"] = msg_list
+                        program_results.append(subresult)
             elif selected_program == "Drum Motor Program":
-                flag_loudness = False
-                flag_vibration = False
-                flag_rotation = 1
-                for name in context_names:
-                    avg = list()
-                    avg.append(get_average_value(graph_session, selected_program, name, "1"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "2"))
-                    avg.append(get_average_value(graph_session, selected_program, name, "3"))
+                for time in time_list:
+                    subresult = dict()
+                    values = get_values(graph_session, selected_program, time)
+                    current_state = list()
 
-                    if name == "Loudness":
-                        if ((avg[1] - avg[0]) / avg[0]) <= 0.75:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "High"
-                            flag_loudness = True
-                    elif name == "Vibration":
-                        if avg[1] <= 25:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "High"
-                            flag_vibration = True
-                    elif name == "Rotation_Speed":
-                        if 50 <= avg[1] <= 60:
-                            subresult[name] = "Normal"
-                        elif avg[1] < 50:
-                            subresult[name] = "Low"
-                            flag_rotation = 0
-                        else:
-                            subresult[name] = "High"
-                            flag_rotation = 2
-                if flag_loudness:
-                    if flag_vibration:
-                        if flag_rotation == 2:
-                            subresult["Message"] = program_instances[selected_program]["actuators"][0] + " works too hard! " \
-                                                   "Please check the power supply."
-                        else:
-                            subresult["Message"] = "Please check if foreign objects are inside the " + program_instances[selected_program]["actuators"][0]
+                    # Generate states based on average values
+                    if len(values) < 2:
+                        count_incomplete += 1
                     else:
-                        if flag_rotation == 2:
-                            subresult["Message"] = program_instances[selected_program]["actuators"][0] + " is too fast " \
-                                                                            "and causes loudness. Please check for repair."
-                        elif flag_rotation == 1:
-                            subresult["Message"] = "Cannot determine cause of loudness. Please run another diagnostic program."
+                        for key, value in values.items():
+                            if key == "Loudness":
+                                if ((value['2'] - value['1']) / value['1']) <= 0.75:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "High"
+                            elif key == "Vibration":
+                                if value['2'] <= 25:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "High"
+                            elif key == "Rotation_Speed":
+                                if 50 <= value['2'] <= 60:
+                                    subresult[key] = "Normal"
+                                elif value['2'] < 50:
+                                    subresult[key] = "Low"
+                                else:
+                                    subresult[key] = "High"
+                            check_real_value_range(session=graph_session, context=key,
+                                                   value=value, state=subresult[key], program=selected_program)
+                            current_state.append({'name': subresult[key], 'source': key})
+
+                        # Update state time for the YIELDS_STATE relationship
+                        update_state_time(session=graph_session, program=selected_program,
+                                              current_state=current_state, time=time)
+                        # Check for anomaly based on current states
+                        defect = check_anomaly(session=graph_session, states=current_state)
+                        if defect.peek() is not None:
+                            # Get anomaly message
+                            msg_list = list()
+                            for item in defect:
+                                subresult["Anomaly"] = item[0]
+                                combo_id = item[1]
+
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause=subresult["Anomaly"], message_type="Error")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                            # Update the time property in the anomaly relationship with the current time
+                            update_time_property(session=graph_session, message_cause=subresult["Anomaly"],
+                                                 combo_id=combo_id, program=selected_program, time=time)
                         else:
-                            subresult["Message"] = "Please check the " + program_instances[selected_program]["actuators"][0] + " for necessary maintenance."
-                else:
-                    if flag_vibration:
-                        if flag_rotation == 2:
-                            subresult["Message"] = "Please check the " + program_instances[selected_program]["actuators"][0] + " for repair."
-                        else:
-                            subresult["Message"] = "Please re-adjust the drum position."
+                            # Get normal message
+                            subresult["Anomaly"] = None
+                            msg_list = list()
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause="", message_type="Normal")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                        subresult["Time"] = time
+                        subresult["Message"] = msg_list
+                        program_results.append(subresult)
+            elif selected_program == "Water Inlet Program":
+                for time in time_list:
+                    subresult = dict()
+                    values = get_values(graph_session, selected_program, time)
+                    current_state = list()
+
+                    # Generate states based on average values
+                    if len(values) < 2:
+                        count_incomplete += 1
                     else:
-                        if flag_rotation == 1:
-                            subresult["Message"] = ', '.join(program_instances[selected_program]["sensors"]) + " and " + \
-                                                   program_instances[selected_program]["actuators"][0] + " are working properly."
+                        for key, value in values.items():
+                            if key == "Water_Level":
+                                if value['3'] - value['1'] >= 20:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "Low"
+                            elif key == "Entrance_Water_Flow":
+                                if value['3'] == 0.:
+                                    subresult[key] = "No Flow"
+                                else:
+                                    subresult[key] = "Flow OK"
+                            elif key == "Water_Hardness":
+                                if value['3'] <= 14:
+                                    subresult[key] = "Normal"
+                                else:
+                                    subresult[key] = "Hard"
+                            check_real_value_range(session=graph_session, context=key,
+                                                   value=value, state=subresult[key], program=selected_program)
+                            current_state.append({'name': subresult[key], 'source': key})
+
+                        # Update state time for the YIELDS_STATE relationship
+                        update_state_time(session=graph_session, program=selected_program,
+                                              current_state=current_state, time=time)
+
+                        # Check for anomaly based on current states
+                        defect = check_anomaly(session=graph_session, states=current_state)
+                        if defect.peek() is not None:
+                            # Get anomaly message
+                            msg_list = list()
+                            for item in defect:
+                                subresult["Anomaly"] = item[0]
+                                combo_id = item[1]
+
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause=subresult["Anomaly"], message_type="Error")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                            # Update the time property in the anomaly relationship with the current time
+                            update_time_property(session=graph_session, message_cause=subresult["Anomaly"],
+                                                 combo_id=combo_id, program=selected_program, time=time)
                         else:
-                            subresult["Message"] = "Please check the " + program_instances[selected_program]["actuators"][0] + " for repair."
-                subresult["Time"] = get_time_string(graph_session, selected_program)
+                            # Get normal message
+                            subresult["Anomaly"] = None
+                            msg_list = list()
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause="", message_type="Normal")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+
+                        subresult["Time"] = time
+                        subresult["Message"] = msg_list
+                        program_results.append(subresult)
             elif selected_program == "Long Time Check":
-                for name in context_names:
-                    avg = list()
-                    avg.append(get_average_value(graph_session, selected_program, name, "1"))
-
-                    if name == "Laundry_Fill_Level":
-                        if avg[0] > 75:
-                            subresult[name] = "High"
-                        elif avg[0] < 35:
-                            subresult[name] = "Low"
-                        else:
-                            subresult[name] = "Normal"
-                    elif name == "Laundry_Weight":
-                        if avg[0] > 10:
-                            subresult[name] = "High"
-                        else:
-                            subresult[name] = "Normal"
-                    elif name == "Washing_Powder_Fill_Level":
-                        if avg[0] > 75:
-                            subresult[name] = "High"
-                        elif avg[0] < 35:
-                            subresult[name] = "Low"
-                        else:
-                            subresult[name] = "Normal"
-                    elif name == "Washing_Powder":
-                        if avg[0] == 0.:
-                            subresult[name] = "Weak"
-                        elif avg[0] == 1.:
-                            subresult[name] = "Normal"
-                        else:
-                            subresult[name] = "Strong"
-                    elif name == "Used_Modes":
-                        if avg[0] == 0.:
-                            subresult[name] = "Delicate"
-                        if avg[0] == 2.:
-                            subresult[name] = "Deep Clean"
-                        else:
-                            subresult[name] = "Normal"
-                    elif name == "Usage_Frequency":
-                        if avg[0] < 4:
-                            subresult[name] = "Low"
-                        elif avg[0] > 9:
-                            subresult[name] = "High"
-                        else:
-                            subresult[name] = "Normal"
-                    elif name == "Water_Hardness":
-                        if avg[0] < 7.3:
-                            subresult[name] = "Soft"
-                        elif avg[0] > 14:
-                            subresult[name] = "Hard"
-                        else:
-                            subresult[name] = "Normal"
-                    elif name == "Temperature":
-                        if avg[0] < 30:
-                            subresult[name] = "Low"
-                        elif avg[0] > 70:
-                            subresult[name] = "High"
-                        else:
-                            subresult[name] = "Normal"
-
-                # Washing powder, water hardness level, and washing powder fill level
-                if subresult["Washing_Powder_Fill_Level"] == "High":
-                    if subresult["Water_Hardness"] == "Soft":
-                        msg_powder = "The amount of washing powder can further be reduced to save detergent."
-                    elif subresult["Water_Hardness"] == "Normal":
-                        if subresult["Washing_Powder"] == "Weak":
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
-                        else:
-                            msg_powder = "The amount of washing powder can further be reduced to save detergent."
+                for time in time_list:
+                    subresult = dict()
+                    values = get_values(graph_session, selected_program, time)
+                    current_state_detergent = list()
+                    current_state_modes = list()
+                    current_state_laundry = list()
+                    current_state_frequency = list()
+                    # Generate states based on average values
+                    if len(values) < 8:
+                        count_incomplete += 1
                     else:
-                        if subresult["Washing_Powder"] == "Weak":
-                            msg_powder = "The type of washing powder is too weak against hard water. Consider buying" \
-                                         "a stronger type."
-                        elif subresult["Washing_Powder"] == "Normal":
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
+                        for key, value in values.items():
+                            if key == "Laundry_Fill_Level":
+                                if value['1'] > 75:
+                                    subresult[key] = ["High", str(value['1']) + value['unit']]
+                                elif value['1'] < 35:
+                                    subresult[key] = ["Low", str(value['1']) + value['unit']]
+                                else:
+                                    subresult[key] = ["Normal", str(value['1']) + value['unit']]
+                                current_state_laundry.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Laundry_Weight":
+                                if value['1'] > 10:
+                                    subresult[key] = ["High", str(value['1']) + ' ' + value['unit']]
+                                else:
+                                    subresult[key] = ["Low", str(value['1']) + ' ' + value['unit']]
+                                current_state_laundry.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Washing_Powder_Fill_Level":
+                                if value['1'] > 75:
+                                    subresult[key] = ["High", str(value['1']) + value['unit']]
+                                elif value['1'] < 35:
+                                    subresult[key] = ["Low", str(value['1']) + value['unit']]
+                                else:
+                                    subresult[key] = ["Normal", str(value['1']) + value['unit']]
+                                current_state_detergent.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Washing_Powder":
+                                if value['1'] == 0.:
+                                    subresult[key] = ["Weak", "-"]
+                                elif value['1'] == 1.:
+                                    subresult[key] = ["Normal", "-"]
+                                else:
+                                    subresult[key] = ["Strong", "-"]
+                                current_state_detergent.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Used_Modes":
+                                if value['1'] == 0.:
+                                    subresult[key] = ["Delicate", "-"]
+                                if value['1'] == 2.:
+                                    subresult[key] = ["Deep Clean", "-"]
+                                else:
+                                    subresult[key] = ["Normal", "-"]
+                                current_state_modes.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Usage_Frequency":
+                                if value['1'] < 4:
+                                    subresult[key] = ["Low", str(value['1']) + " times/week"]
+                                elif value['1'] > 9:
+                                    subresult[key] = ["High", str(value['1']) + " times/week"]
+                                else:
+                                    subresult[key] = ["Normal", str(value['1']) + " times/week"]
+                                current_state_frequency.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Water_Hardness":
+                                if value['1'] < 7.3:
+                                    subresult[key] = ["Soft", str(value['1']) + value['unit']]
+                                elif value['1'] > 14:
+                                    subresult[key] = ["Hard", str(value['1']) + value['unit']]
+                                else:
+                                    subresult[key] = ["Normal", str(value['1']) + value['unit']]
+                                current_state_detergent.append({'name': subresult[key][0], 'source': key})
+                            elif key == "Temperature":
+                                if value['1'] < 30:
+                                    subresult[key] = ["Low", str(value['1']) + value['unit'] + 'C']
+                                elif value['1'] > 70:
+                                    subresult[key] = ["High", str(value['1']) + value['unit'] + 'C']
+                                else:
+                                    subresult[key] = ["Normal", str(value['1']) + value['unit'] + 'C']
+                                current_state_modes.append({'name': subresult[key][0], 'source': key})
+                            check_real_value_range(session=graph_session, context=key,
+                                                   value=value, state=subresult[key][0], program=selected_program)
+
+                        # Update state time for the YIELDS_STATE relationship
+                        update_state_time(session=graph_session, program=selected_program,
+                                          current_state=current_state_modes, time=time)
+                        update_state_time(session=graph_session, program=selected_program,
+                                          current_state=current_state_laundry, time=time)
+                        update_state_time(session=graph_session, program=selected_program,
+                                          current_state=current_state_detergent, time=time)
+                        update_state_time(session=graph_session, program=selected_program,
+                                          current_state=current_state_frequency, time=time)
+
+                        # Check for anomaly based on current states
+                        defect = check_anomaly(session=graph_session, states=current_state_modes)
+                        if defect.peek() is not None:
+                            # Get anomaly message
+                            msg_list = list()
+                            for item in defect:
+                                subresult["Anomaly"] = item[0]
+                                combo_id = item[1]
+
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause=subresult["Anomaly"], message_type="Error")
+                            for item in msg:
+                                msg_list.append(item[0])
+
+                            # Update the time property in the anomaly relationship with the current time
+                            update_time_property(session=graph_session, message_cause=subresult["Anomaly"],
+                                                 combo_id=combo_id, program=selected_program, time=time)
                         else:
-                            msg_powder = "The amount of washing powder can further be reduced to save detergent."
-                elif subresult["Washing_Powder_Fill_Level"] == "Low":
-                    if subresult["Water_Hardness"] == "Soft":
-                        if subresult["Washing_Powder"] == "Strong" or subresult["Washing_Powder"] == "Normal":
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
-                        else:
-                            msg_powder = "The type of washing powder is too weak against hard water. Consider buying a stronger type" \
-                                         "or adding more detergent."
-                    elif subresult["Water_Hardness"] == "Normal":
-                        if subresult["Washing_Powder"] == "Weak" or subresult["Washing_Powder"] == "Normal":
-                            msg_powder = "Consider buying a stronger washing powder or adding more detergent."
-                        else:
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
-                    else:
-                        if subresult["Washing_Powder"] == "Weak" or subresult["Washing_Powder"] == "Normal":
-                            msg_powder = "Consider buying a stronger washing powder or adding more detergent."
-                        else:
-                            msg_powder = "Not enough detergent, consider adding more to clean clothes optimally."
-                else:
-                    if subresult["Water_Hardness"] == "Normal":
-                        if subresult["Washing_Powder"] == "Weak":
-                            msg_powder = "Consider buying a stronger washing powder or adding more detergent."
-                        elif subresult["Washing_Powder"] == "Normal":
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
-                        else:
-                            msg_powder = "The amount of washing powder can further be reduced to save detergent."
-                    elif subresult["Water_Hardness"] == "Soft":
-                        if subresult["Washing_Powder"] == "Weak":
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
-                        else:
-                            msg_powder = "The amount of washing powder can further be reduced to save detergent."
-                    else:
-                        if subresult["Washing_Powder"] == "Strong":
-                            msg_powder = "The amount and type of washing powder is optimal for current water hardness level."
-                        else:
-                            msg_powder = "Consider buying a stronger washing powder or adding more detergent."
+                            # Get normal message
+                            subresult["Anomaly"] = None
+                            msg_list = list()
+                            msg = get_anomaly_message(session=graph_session, program=selected_program,
+                                                      message_cause="", message_type="Normal")
+                            for item in msg:
+                                msg_list.append(item[0])
 
-                # Temperature and used modes
-                if subresult["Temperature"] == "Normal":
-                    if subresult["Used_Modes"] == "Delicate":
-                        msg_mode = "The most frequently used mode is Delicate mode. Measured temperature is too high: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                    " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
-                    elif subresult["Used_Modes"] == "Normal":
-                        msg_mode = "The most frequently used mode is Normal mode. Temperature is correctly measured."
-                    else:
-                        msg_mode = "The most frequently used mode is Deep Clean mode. Measured temperature is too low: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                    " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
-                elif subresult["Temperature"] == "Low":
-                    if subresult["Used_Modes"] == "Delicate":
-                        msg_mode = "The most frequently used mode is Delicate mode. Temperature is correctly measured."
-                    elif subresult["Used_Modes"] == "Normal":
-                        msg_mode = "The most frequently used mode is Normal mode. Measured temperature is too low: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                   " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
-                    else:
-                        msg_mode = "The most frequently used mode is Deep Clean mode. Measured temperature is too low: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                   " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
-                else:
-                    if subresult["Used_Modes"] == "Delicate":
-                        msg_mode = "The most frequently used mode is Delicate mode. Measured temperature is too high: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                   " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
-                    elif subresult["Used_Modes"] == "Normal":
-                        msg_mode = "The most frequently used mode is Normal mode. Measured temperature is too high: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                   " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
-                    else:
-                        msg_mode = "The most frequently used mode is Deep Clean mode. Measured temperature is too high: check the " \
-                                   + program_instances[selected_program]["actuators"] + \
-                                   " or " + ', '.join(program_instances[selected_program]["sensors"]) + " for possible defects."
+                        # Check for suggestions
+                        checked_suggestion_states = [current_state_detergent, current_state_laundry, current_state_frequency]
+                        suggestion_list = list()
+                        for state in checked_suggestion_states:
+                            cause_list = list()
+                            suggestion = check_suggestion(session=graph_session, states=state)
+                            if suggestion.peek() is not None:
+                                # Get suggestion message
+                                for item in suggestion:
+                                    cause_list.append(item[0])
+                                context = list()
+                                for j in range(len(state)):
+                                    context.append(state[j]['source'])
+                                msg = get_suggestion_message(session=graph_session, context=context,
+                                                              message_cause=cause_list, message_type="suggestion")
+                                for item in msg:
+                                    msg_list.append(item[0])
+                                suggestion_list.append(cause_list)
+                            else:
+                                # Get optimal message
+                                context = list()
+                                for j in range(len(state)):
+                                    context.append(state[j]['source'])
 
-                # Laundry Fill
-                if subresult["Laundry_Fill_Level"] == "Normal":
-                    msg_fill = "Amount of laundry is optimal."
-                elif subresult["Laundry_Fill_Level"] == "Low":
-                    msg_fill = "More laundry can be added for more efficient washing."
-                else:
-                    msg_fill = "Consider reducing the amount of laundry."
+                                msg = get_suggestion_message(session=graph_session, context=context,
+                                                          message_cause="", message_type="optimal")
+                                for item in msg:
+                                    msg_list.append(item[0])
+                        subresult["Suggestion"] = [y for x in suggestion_list for y in x]
+                        subresult["Time"] = time
+                        subresult["Message"] = msg_list
 
-                # Laundry Weight
-                if subresult["Laundry_Weight"] == "Normal":
-                    msg_weight = "Laundry weight is under recommended limit."
-                else:
-                    msg_weight = "Laundry is overweight, please reduce laundry weight to preserve system lifetime."
+                        program_results.append(subresult)
+            else:
+                pass
+            result_program[selected_program] = program_results
+            for i in program_results:
+                all_results[selected_program].append(i)
 
-                # Usage Frequency
-                if subresult["Usage_Frequency"] == "Normal":
-                    msg_freq = "Washing frequency is optimal."
-                elif subresult["Usage_Frequency"] == "Low":
-                    msg_freq = "Washing machine is seldom used."
-                else:
-                    msg_freq = "Washing machine is used too frequently, consider reducing usage to protect components from" \
-                               "possible degradation."
+        else:
+            print("No new data is found for program", selected_program, ".")
 
-                subresult["Message"] = "| ".join([msg_fill, msg_weight, msg_powder, msg_freq, msg_mode])
-                subresult["Time"] = get_time_string(graph_session, selected_program)
+    t1 = sys_time.process_time() - t0
 
-            # Save all results of each program into a dictionary
-            result_program[selected_program] = subresult
+    # Update graph with the anomaly weights
+    graph_session.run('''MATCH (n:n4sch__Instance)-[r:HAS_DEFECT]->(m:n4sch__Instance)
+    WITH n, size(r.time) as count_defects
+    SET n.anomaly_weight = count_defects''')
 
-    print(result_program)
+    # Overwrite old json file with newly appended data
+    with open('result_program.json', 'w') as f:
+        json.dump(all_results, f)
 
-    # Save results as a json file
-    with open('result.json', 'w') as f:
-        json.dump(result_program, f)
-
+    # Get latest results only
+    result_latest = dict()
+    for program, program_result in all_results.items():
+        query_latest = get_latest_time(graph_session, program)
+        for item in query_latest:
+            latest_program_time = item[0]
+        for i in program_result:
+            if latest_program_time in i["Time"]:
+                result_latest[program] = [i]
+    print("Analysis done in ", t1, " seconds.")
     graph_session.close()
-    return result_program
-
-
+    return result_latest

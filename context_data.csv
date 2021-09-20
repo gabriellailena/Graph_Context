@@ -1,0 +1,203 @@
+idsensordata,diagnosisMode,phase,datasource,observed_value,valid,time,unit
+4182,Door Lock Program,2,Pressure,1298,0,2021-07-06 14:00:31,Pa
+4181,Door Lock Program,2,Pressure,1301,0,2021-07-06 14:00:31,Pa
+4180,Door Lock Program,2,Pressure,1298,0,2021-07-06 14:00:31,Pa
+4179,Door Lock Program,2,Pressure,1300,0,2021-07-06 14:00:31,Pa
+4178,Door Lock Program,2,Pressure,1299,0,2021-07-06 14:00:31,Pa
+4177,Door Lock Program,2,Pressure,1301,0,2021-07-06 14:00:31,Pa
+4176,Door Lock Program,2,Pressure,1302,0,2021-07-06 14:00:31,Pa
+4175,Door Lock Program,2,Pressure,1299,0,2021-07-06 14:00:31,Pa
+4174,Door Lock Program,2,Pressure,1301,0,2021-07-06 14:00:31,Pa
+4173,Door Lock Program,1,Pressure,1000,0,2021-07-06 14:00:31,Pa
+4184,Door Lock Program,2,Lock,1,0,2021-07-06 14:00:31,true/false
+4171,Door Lock Program,1,Pressure,999,0,2021-07-06 14:00:31,Pa
+4170,Door Lock Program,1,Pressure,1000,0,2021-07-06 14:00:31,Pa
+4169,Door Lock Program,1,Pressure,1001,0,2021-07-06 14:00:31,Pa
+4164,Door Lock Program,1,Pressure,1002,0,2021-07-06 14:00:31,Pa
+4168,Door Lock Program,1,Pressure,998,0,2021-07-06 14:00:31,Pa
+4167,Door Lock Program,1,Pressure,999,0,2021-07-06 14:00:31,Pa
+4172,Door Lock Program,1,Pressure,1000,0,2021-07-06 14:00:31,Pa
+4166,Door Lock Program,1,Pressure,1002,0,2021-07-06 14:00:31,Pa
+4165,Door Lock Program,1,Pressure,1002,0,2021-07-06 14:00:31,Pa
+4183,Door Lock Program,2,Pressure,1301,0,2021-07-06 14:00:31,Pa
+4147,Drum Motor Program,2,Vibration,10,0,2021-07-06 14:00:27,%
+4148,Drum Motor Program,2,Vibration,9,0,2021-07-06 14:00:27,%
+4149,Drum Motor Program,2,Vibration,11,0,2021-07-06 14:00:27,%
+4150,Drum Motor Program,2,Vibration,11,0,2021-07-06 14:00:27,%
+4151,Drum Motor Program,2,Vibration,9,0,2021-07-06 14:00:27,%
+4152,Drum Motor Program,2,Vibration,9,0,2021-07-06 14:00:27,%
+4153,Drum Motor Program,2,Vibration,11,0,2021-07-06 14:00:27,%
+4154,Drum Motor Program,2,Rotation_Speed,99,0,2021-07-06 14:00:27,rpm
+4155,Drum Motor Program,2,Rotation_Speed,98,0,2021-07-06 14:00:27,rpm
+4156,Drum Motor Program,2,Rotation_Speed,102,0,2021-07-06 14:00:27,rpm
+4157,Drum Motor Program,2,Rotation_Speed,101,0,2021-07-06 14:00:27,rpm
+4158,Drum Motor Program,2,Rotation_Speed,99,0,2021-07-06 14:00:27,rpm
+4159,Drum Motor Program,2,Rotation_Speed,99,0,2021-07-06 14:00:27,rpm
+4161,Drum Motor Program,2,Rotation_Speed,98,0,2021-07-06 14:00:27,rpm
+4162,Drum Motor Program,2,Rotation_Speed,100,0,2021-07-06 14:00:27,rpm
+4163,Drum Motor Program,2,Rotation_Speed,100,0,2021-07-06 14:00:27,rpm
+4125,Drum Motor Program,1,Loudness,5,0,2021-07-06 14:00:27,dB
+4124,Drum Motor Program,1,Loudness,6,0,2021-07-06 14:00:27,dB
+4160,Drum Motor Program,2,Rotation_Speed,98,0,2021-07-06 14:00:27,rpm
+4139,Drum Motor Program,2,Loudness,16,0,2021-07-06 14:00:27,dB
+4133,Drum Motor Program,1,Loudness,4,0,2021-07-06 14:00:27,dB
+4126,Drum Motor Program,1,Loudness,3,0,2021-07-06 14:00:27,dB
+4127,Drum Motor Program,1,Loudness,4,0,2021-07-06 14:00:27,dB
+4128,Drum Motor Program,1,Loudness,6,0,2021-07-06 14:00:27,dB
+4129,Drum Motor Program,1,Loudness,3,0,2021-07-06 14:00:27,dB
+4130,Drum Motor Program,1,Loudness,5,0,2021-07-06 14:00:27,dB
+4131,Drum Motor Program,1,Loudness,5,0,2021-07-06 14:00:27,dB
+4132,Drum Motor Program,1,Loudness,5,0,2021-07-06 14:00:27,dB
+4145,Drum Motor Program,2,Vibration,9,0,2021-07-06 14:00:27,%
+4134,Drum Motor Program,2,Loudness,15,0,2021-07-06 14:00:27,dB
+4135,Drum Motor Program,2,Loudness,14,0,2021-07-06 14:00:27,dB
+4136,Drum Motor Program,2,Loudness,14,0,2021-07-06 14:00:27,dB
+4137,Drum Motor Program,2,Loudness,14,0,2021-07-06 14:00:27,dB
+4138,Drum Motor Program,2,Loudness,17,0,2021-07-06 14:00:27,dB
+4140,Drum Motor Program,2,Loudness,15,0,2021-07-06 14:00:27,dB
+4141,Drum Motor Program,2,Loudness,15,0,2021-07-06 14:00:27,dB
+4142,Drum Motor Program,2,Loudness,14,0,2021-07-06 14:00:27,dB
+4143,Drum Motor Program,2,Loudness,17,0,2021-07-06 14:00:27,dB
+4144,Drum Motor Program,2,Vibration,11,0,2021-07-06 14:00:27,%
+4146,Drum Motor Program,2,Vibration,9,0,2021-07-06 14:00:27,%
+4097,Fan Program,2,Loudness,13,0,2021-07-06 14:00:24,dB
+4098,Fan Program,2,Loudness,15,0,2021-07-06 14:00:24,dB
+4099,Fan Program,2,Loudness,14,0,2021-07-06 14:00:24,dB
+4100,Fan Program,2,Loudness,16,0,2021-07-06 14:00:24,dB
+4101,Fan Program,2,Loudness,14,0,2021-07-06 14:00:24,dB
+4102,Fan Program,2,Loudness,15,0,2021-07-06 14:00:24,dB
+4103,Fan Program,2,Loudness,15,0,2021-07-06 14:00:24,dB
+4104,Fan Program,2,Vibration,10,0,2021-07-06 14:00:24,%
+4105,Fan Program,2,Vibration,8,0,2021-07-06 14:00:24,%
+4106,Fan Program,2,Vibration,10,0,2021-07-06 14:00:24,%
+4108,Fan Program,2,Vibration,12,0,2021-07-06 14:00:24,%
+4109,Fan Program,2,Vibration,8,0,2021-07-06 14:00:24,%
+4110,Fan Program,2,Vibration,11,0,2021-07-06 14:00:24,%
+4111,Fan Program,2,Vibration,10,0,2021-07-06 14:00:24,%
+4112,Fan Program,2,Vibration,9,0,2021-07-06 14:00:24,%
+4113,Fan Program,2,Vibration,10,0,2021-07-06 14:00:24,%
+4123,Fan Program,2,Mass_Air_Flow,60,0,2021-07-06 14:00:24,l/min
+4092,Fan Program,1,Loudness,7,0,2021-07-06 14:00:24,dB
+4096,Fan Program,2,Loudness,16,0,2021-07-06 14:00:24,dB
+4095,Fan Program,2,Loudness,15,0,2021-07-06 14:00:24,dB
+4094,Fan Program,2,Loudness,14,0,2021-07-06 14:00:24,dB
+4093,Fan Program,1,Loudness,4,0,2021-07-06 14:00:24,dB
+4091,Fan Program,1,Loudness,6,0,2021-07-06 14:00:24,dB
+4090,Fan Program,1,Loudness,4,0,2021-07-06 14:00:24,dB
+4088,Fan Program,1,Loudness,3,0,2021-07-06 14:00:24,dB
+4087,Fan Program,1,Loudness,3,0,2021-07-06 14:00:24,dB
+4086,Fan Program,1,Loudness,6,0,2021-07-06 14:00:24,dB
+4107,Fan Program,2,Vibration,9,0,2021-07-06 14:00:24,%
+4085,Fan Program,1,Loudness,6,0,2021-07-06 14:00:24,dB
+4084,Fan Program,1,Loudness,3,0,2021-07-06 14:00:24,dB
+4115,Fan Program,2,Mass_Air_Flow,60,0,2021-07-06 14:00:24,l/min
+4116,Fan Program,2,Mass_Air_Flow,62,0,2021-07-06 14:00:24,l/min
+4117,Fan Program,2,Mass_Air_Flow,59,0,2021-07-06 14:00:24,l/min
+4118,Fan Program,2,Mass_Air_Flow,62,0,2021-07-06 14:00:24,l/min
+4119,Fan Program,2,Mass_Air_Flow,60,0,2021-07-06 14:00:24,l/min
+4089,Fan Program,1,Loudness,6,0,2021-07-06 14:00:24,dB
+4120,Fan Program,2,Mass_Air_Flow,61,0,2021-07-06 14:00:24,l/min
+4121,Fan Program,2,Mass_Air_Flow,59,0,2021-07-06 14:00:24,l/min
+4122,Fan Program,2,Mass_Air_Flow,62,0,2021-07-06 14:00:24,l/min
+4114,Fan Program,2,Mass_Air_Flow,59,0,2021-07-06 14:00:24,l/min
+4009,Long Time Check,1,Laundry_Fill_Level,91,0,2021-07-06 14:00:04,%
+4010,Long Time Check,1,Laundry_Fill_Level,91,0,2021-07-06 14:00:04,%
+4011,Long Time Check,1,Laundry_Fill_Level,89,0,2021-07-06 14:00:04,%
+4012,Long Time Check,1,Laundry_Fill_Level,90,0,2021-07-06 14:00:04,%
+4013,Long Time Check,1,Laundry_Fill_Level,88,0,2021-07-06 14:00:04,%
+4014,Long Time Check,1,Laundry_Fill_Level,92,0,2021-07-06 14:00:04,%
+4015,Long Time Check,1,Laundry_Fill_Level,89,0,2021-07-06 14:00:04,%
+4016,Long Time Check,1,Laundry_Fill_Level,91,0,2021-07-06 14:00:04,%
+4017,Long Time Check,1,Laundry_Fill_Level,89,0,2021-07-06 14:00:04,%
+4018,Long Time Check,1,Laundry_Fill_Level,92,0,2021-07-06 14:00:04,%
+4019,Long Time Check,1,Laundry_Weight,20,0,2021-07-06 14:00:04,kg
+4020,Long Time Check,1,Laundry_Weight,21,0,2021-07-06 14:00:04,kg
+4021,Long Time Check,1,Laundry_Weight,22,0,2021-07-06 14:00:04,kg
+4022,Long Time Check,1,Laundry_Weight,21,0,2021-07-06 14:00:04,kg
+4023,Long Time Check,1,Laundry_Weight,22,0,2021-07-06 14:00:04,kg
+4024,Long Time Check,1,Laundry_Weight,18,0,2021-07-06 14:00:04,kg
+4025,Long Time Check,1,Laundry_Weight,19,0,2021-07-06 14:00:04,kg
+4026,Long Time Check,1,Laundry_Weight,20,0,2021-07-06 14:00:04,kg
+4027,Long Time Check,1,Laundry_Weight,21,0,2021-07-06 14:00:04,kg
+4028,Long Time Check,1,Laundry_Weight,21,0,2021-07-06 14:00:04,kg
+4029,Long Time Check,1,Washing_Powder_Fill_Level,49,0,2021-07-06 14:00:04,%
+4030,Long Time Check,1,Washing_Powder_Fill_Level,48,0,2021-07-06 14:00:04,%
+4031,Long Time Check,1,Washing_Powder_Fill_Level,50,0,2021-07-06 14:00:04,%
+4033,Long Time Check,1,Washing_Powder_Fill_Level,52,0,2021-07-06 14:00:04,%
+4034,Long Time Check,1,Washing_Powder_Fill_Level,48,0,2021-07-06 14:00:04,%
+4035,Long Time Check,1,Washing_Powder_Fill_Level,52,0,2021-07-06 14:00:04,%
+4036,Long Time Check,1,Washing_Powder_Fill_Level,52,0,2021-07-06 14:00:04,%
+4037,Long Time Check,1,Washing_Powder_Fill_Level,50,0,2021-07-06 14:00:04,%
+4038,Long Time Check,1,Washing_Powder_Fill_Level,49,0,2021-07-06 14:00:04,%
+4039,Long Time Check,1,Water_Hardness,20,0,2021-07-06 14:00:04,°dH
+4040,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4041,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4042,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4043,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4044,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4045,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4046,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4047,Long Time Check,1,Water_Hardness,20,0,2021-07-06 14:00:04,°dH
+4048,Long Time Check,1,Water_Hardness,19,0,2021-07-06 14:00:04,°dH
+4049,Long Time Check,1,Temperature,50,0,2021-07-06 14:00:04,°
+4050,Long Time Check,1,Temperature,49,0,2021-07-06 14:00:04,°
+4051,Long Time Check,1,Temperature,49,0,2021-07-06 14:00:04,°
+4052,Long Time Check,1,Temperature,48,0,2021-07-06 14:00:04,°
+4053,Long Time Check,1,Temperature,48,0,2021-07-06 14:00:04,°
+4054,Long Time Check,1,Temperature,48,0,2021-07-06 14:00:04,°
+4055,Long Time Check,1,Temperature,51,0,2021-07-06 14:00:04,°
+4056,Long Time Check,1,Temperature,52,0,2021-07-06 14:00:04,°
+4057,Long Time Check,1,Temperature,51,0,2021-07-06 14:00:04,°
+4058,Long Time Check,1,Temperature,49,0,2021-07-06 14:00:04,°
+4059,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4060,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4061,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4062,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4063,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4064,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4065,Long Time Check,1,Usage_Frequency,1,0,2021-07-06 14:00:04,Washing Dryer Used
+4066,Long Time Check,1,Used_Modes,1,0,2021-07-06 14:00:04,lowtemp/normal/hightemp
+4067,Long Time Check,1,Washing_Powder,0,0,2021-07-06 14:00:04,weak/normal/strong
+4032,Long Time Check,1,Washing_Powder_Fill_Level,51,0,2021-07-06 14:00:04,%
+4079,Pump Out Program,3,Water_Level,3,0,2021-07-06 14:00:23,%
+4078,Pump Out Program,3,Water_Level,3,0,2021-07-06 14:00:23,%
+4077,Pump Out Program,1,Water_Level,2,0,2021-07-06 14:00:23,%
+4076,Pump Out Program,1,Water_Level,1,0,2021-07-06 14:00:23,%
+4075,Pump Out Program,1,Water_Level,4,0,2021-07-06 14:00:23,%
+4074,Pump Out Program,1,Water_Level,3,0,2021-07-06 14:00:23,%
+4073,Pump Out Program,1,Water_Level,2,0,2021-07-06 14:00:23,%
+4083,Pump Out Program,2,Exit_Water_Flow,0,0,2021-07-06 14:00:23,true/false
+4082,Pump Out Program,3,Water_Level,4,0,2021-07-06 14:00:23,%
+4081,Pump Out Program,3,Water_Level,1,0,2021-07-06 14:00:23,%
+4080,Pump Out Program,3,Water_Level,1,0,2021-07-06 14:00:23,%
+4185,Water Inlet Program,1,Water_Level,2,0,2021-07-06 14:00:33,%
+4186,Water Inlet Program,1,Water_Level,2,0,2021-07-06 14:00:33,%
+4187,Water Inlet Program,1,Water_Level,2,0,2021-07-06 14:00:33,%
+4188,Water Inlet Program,1,Water_Level,4,0,2021-07-06 14:00:33,%
+4189,Water Inlet Program,1,Water_Level,3,0,2021-07-06 14:00:33,%
+4190,Water Inlet Program,1,Water_Level,1,0,2021-07-06 14:00:33,%
+4191,Water Inlet Program,1,Water_Level,0,0,2021-07-06 14:00:33,%
+4192,Water Inlet Program,1,Water_Level,2,0,2021-07-06 14:00:33,%
+4193,Water Inlet Program,1,Water_Level,2,0,2021-07-06 14:00:33,%
+4194,Water Inlet Program,1,Water_Level,3,0,2021-07-06 14:00:33,%
+4195,Water Inlet Program,3,Water_Level,31,0,2021-07-06 14:00:33,%
+4196,Water Inlet Program,3,Water_Level,30,0,2021-07-06 14:00:33,%
+4197,Water Inlet Program,3,Water_Level,30,0,2021-07-06 14:00:33,%
+4198,Water Inlet Program,3,Water_Level,30,0,2021-07-06 14:00:33,%
+4199,Water Inlet Program,3,Water_Level,31,0,2021-07-06 14:00:33,%
+4200,Water Inlet Program,3,Water_Level,32,0,2021-07-06 14:00:33,%
+4201,Water Inlet Program,3,Water_Level,30,0,2021-07-06 14:00:33,%
+4202,Water Inlet Program,3,Water_Level,31,0,2021-07-06 14:00:33,%
+4203,Water Inlet Program,3,Water_Level,29,0,2021-07-06 14:00:33,%
+4204,Water Inlet Program,3,Water_Level,28,0,2021-07-06 14:00:33,%
+4205,Water Inlet Program,3,Entrance_Water_Flow,1,0,2021-07-06 14:00:33,true/false
+4206,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4207,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4208,Water Inlet Program,3,Water_Hardness,7,0,2021-07-06 14:00:33,°dH
+4209,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4210,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4211,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4212,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4213,Water Inlet Program,3,Water_Hardness,7,0,2021-07-06 14:00:33,°dH
+4214,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH
+4215,Water Inlet Program,3,Water_Hardness,6,0,2021-07-06 14:00:33,°dH

@@ -16,15 +16,20 @@
         <div class="col-md-4">
             {% for key1, value1 in result.items() %}
                 {% if key1 == "Long Time Check" %}
-                    {% for key2, value2 in value1.items() %}
+                    {% for key2, value2 in value1[0].items() %}
                             <ul class="list-group list-group-horizontal">
-                            {% if key2 != "Message" and key2 != "Time" %}
+                            {% if key2 != "Message" and key2 != "Time" and key2 != "Suggestion" and key2 != "Anomaly" %}
                                 <li class="list-group-item w-50 fw-bold">{{ key2|replace('_',' ') }}</li>
+                                <li class="list-group-item w-50 flex-fill">{{ value2[0] }}</li>
+                                <li class="list-group-item w-50 flex-fill">{{ value2[1] }}</li>
+                            {% endif %}
+                            {% if key2 == "Anomaly" %}
+                                <li class="list-group-item w-40 fw-bold">{{ key2|replace('_',' ') }}</li>
                                 <li class="list-group-item flex-fill">{{ value2 }}</li>
                             {% endif %}
                             </ul>
                     {% endfor %}
-                    <p class="fw-light fst-italic">Last checked on: {{ value1["Time"] }}</p>
+                    <p class="fw-light fst-italic">Last checked on: {{ value1[0]["Time"]|replace('T', ' ')|replace('Z', '') }}</p>
                 {% endif %}
             {% endfor %}
         </div>
@@ -32,15 +37,17 @@
             <h3>Suggestions:</h3>
                 {% for key1, value1 in result.items() %}
                     {% if key1 == "Long Time Check" %}
-                        {% set msg_list = value1["Message"].split('|') %}
-                            <ul style="list-style: circle">
-                                {% for item in msg_list %}
-                                    <li>{{ item }}</li>
-                                {% endfor %}
-                            </ul>
+                        <ul style="list-style: circle">
+                            {% for item in value1[0]["Message"] %}
+                                <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
                     {% endif %}
                 {% endfor %}
-            </div>
+        </div>
+        <div class="col-md-4">
+            <img src="static/css/optimization.png" class="d-block" alt="Image" width="350" height="350" loading="lazy">
+        </div>
     </div>
 </div>
 {% endblock %}

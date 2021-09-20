@@ -1,14 +1,16 @@
+
 import pickle
 import os
 from cmath import phase
-from generatedata import generate_all_data
+from .generatedata import generate_all_data
 
 class contextmodel():
 
-    def __init__(self, app, db, reqJson):
+    def __init__(self, app, db, reqJson, mysql):
         self.app = app
         self.db = db
         self.reqJson = reqJson
+        self.mysql = mysql
         self.create()
         self.runContextDiagnosis()
         self.deinitialize()
@@ -30,8 +32,9 @@ class contextmodel():
 	#chooses the context, based on the Diagnosis Mode chosen
     def chooseContext(self):
         #switch case hard coded
+        context = [""]
         if(self.diagnosisMode == "Pump Out Program"):
-            context = ["Water_Level","Exit_Water_Flow","Liquid"]
+            context = ["Water_Level","Exit_Water_Flow"]
         elif(self.diagnosisMode == "Complete Short Program"):
             context = [""]
         elif(self.diagnosisMode == "Fan Program"):
@@ -52,7 +55,7 @@ class contextmodel():
     def returnResult(self):
         return self.result
     
-	#uploades the internal Sensor Data to MySQL contextdata Table
+	#uploades the internal Sensor Data to MySQL graphcontextdata Table
     def uploadContextDatatoServer(self):
         valid = "1"
         diagnosisMode = self.reqJson['nameValuePairs']['diagnosisMode']
@@ -63,14 +66,15 @@ class contextmodel():
         unit = self.reqJson['nameValuePairs']['unit']
         range_data = len(phase)
         print ('Request json string is: {}'.format(self.reqJson))
-        session = self.db.session()
         if(diagnosisMode != "Long Time Check"):
+            cur = self.mysql.connection.cursor()
+    
             for item in range(range_data):
     
-                session.execute("INSERT INTO contextdata (valid, diagnosisMode, phase, datasource, observed_value, time, unit) VALUES (%s,%s,%s,%s,%s,%s,%s)" ,
+                cur.execute("INSERT INTO graphcontextdata (valid, diagnosisMode, phase, datasource, observed_value, time, unit) VALUES (%s,%s,%s,%s,%s,%s,%s)" , 
                            (valid, diagnosisMode, phase[item], sensor[item], observedValue[item], time[item], unit[item]))
-                session.commit()
-            session.close()
+                self.mysql.connection.commit()
+            cur.close()
         return diagnosisMode
     
 	#function if programer wants to handle diagnosismode by ID not name
@@ -103,42 +107,41 @@ class contextmodel():
     #fetches every Context Data needed for calculating result, only uses new data
     def fetchContextfromServer(self):
         context = self.context
-        session = self.db.session()
+        cur = self.mysql.connection.cursor()
         sensordata = []
         for item in context:
-            session.execute("SELECT * FROM contextmodeldata.contextdata WHERE valid = \"1\" AND datasource = %(context)s", {'context' : item} )
-            sensordata.append(session.fetchall())
+            cur.execute("SELECT * FROM graphcontextdata WHERE valid = \"1\" AND datasource = %(context)s", {'context' : item} )
+            sensordata.append(cur.fetchall())
         self.sensordata = sensordata
         print(sensordata)
         
 	#marks the data as old
     def setValidfalse(self):
-        session = self.db.session()
-        session.execute("UPDATE contextdata SET valid = '0'")
-        session.commit()
-        session.close()
+        cur = self.mysql.connection.cursor()
+        cur.execute("UPDATE graphcontextdata SET valid = '0'")
+        self.mysql.connection.commit()
+        cur.close()
         
-	#uploades the simulated Context Data to MySQL contextdata Table
+	#uploades the simulated Context Data to MySQL graphcontextdata Table
     def uploadSimulatedContext(self):
             valid = 1
-            session = self.db.session()
+            cur = self.mysql.connection.cursor()
             for index,item in enumerate(self.context):
                 for phase in range(1, 6):
                     filename = ""
                     try:
                         if(self.diagnosisMode != "Long Time Check"): filename = os.path.dirname(__file__) + "\\contextdata" + "\\" + self.diagnosisMode +"\\" + self.context[index] + "\\" + self.context[index] + "_Ph" + str(phase) + ".txt"
                         elif(self.diagnosisMode == "Long Time Check" and phase == 1): filename = os.path.dirname(__file__) + "\\contextdata" + "\\" + self.diagnosisMode +"\\" + self.context[index] + "\\" + self.context[index] + ".txt"
-                        
                         with open(filename, "rb") as fp:
                             valuelist = pickle.load(fp)
                             unit = pickle.load(fp)
                             timelist = pickle.load(fp)
                         for i,value in enumerate(valuelist):
-                            session.execute("INSERT INTO contextdata (valid, diagnosisMode, phase, datasource, observed_value, time, unit) VALUES (%s,%s,%s,%s,%s,%s,%s)" , (str(valid), self.diagnosisMode, str(phase), self.context[index], str(value), str(timelist), unit))
-                            session.commit()
+                            cur.execute("INSERT INTO graphcontextdata (valid, diagnosisMode, phase, datasource, observed_value, time, unit) VALUES (%s,%s,%s,%s,%s,%s,%s)" , (str(valid), self.diagnosisMode, str(phase), self.context[index], str(value), str(timelist), unit))
+                            self.mysql.connection.commit()
                     except Exception:
                         pass
-            session.close()
+            cur.close()
 
 	#decision tree and creation of the result, split into result, subresult and if the result has passed
     def calculateResult(self):
@@ -161,12 +164,11 @@ class contextmodel():
             Exit_Water_Flow = self.sensordata[self.context.index("Exit_Water_Flow")]
             Exit_Water_Flow_Ph2 = []
             for value in Exit_Water_Flow:
-                if value[2] == 1:
-                    Exit_Water_Flow_Ph2.append(value)
-
+                if value[2] == 2:
+                    Exit_Water_Flow_Ph2.append(value[4])
 		#creates the staments used in the decision tree, is handled a bit different for the other Diagnosis Modes
             Statement_Water_Level_toohigh  =  (self.av(Water_Level_Ph1) - self.av(Water_Level_Ph3)) <= 30
-            Statement_no_water_flow  =  Exit_Water_Flow_Ph2 == 0
+            Statement_no_water_flow  =  Exit_Water_Flow_Ph2[0] == 0
             
 		#creates the result based on the values
             partialresult = []
@@ -174,7 +176,7 @@ class contextmodel():
                 partialresult.append("Wasserpegel ist noch zu hoch")
                 if(Statement_no_water_flow):
                     partialresult.append( "Kein Wasserdurchfluss am Abfluss gemessen" )
-                    result.append( "Kein Wasserdurchfluss am Abfluss gemessen")
+                    result.append( "Wasserdurchfluss verstopft")
                     resultpass.append("false")
                 else:
                     partialresult.append("Wasserdurchfluss wurde gemessen")
@@ -198,7 +200,7 @@ class contextmodel():
             programlist = ["Pump Out Program", "Fan Program", "Drum Motor Program", "Door Lock Program", "Water Inlet Program"]
             for program in programlist:
                 reqJson = {'nameValuePairs': {'mode': 'true', 'diagnosisMode': program, 'phase': [], 'sensor': [], 'desiredValueType': [], 'desiredValue': [], 'observedValue': [], 'time': [], 'unit': []}}
-                c =  contextmodel(self.app, self.db, reqJson)
+                c =  contextmodel(self.app, self.db, reqJson, self.mysql)
                 recursiveresult = c.getresult()
                 recursivesubresult = c.getsubresult()
                 recursiveresultpass = c.getresultpass()
@@ -853,7 +855,7 @@ class contextmodel():
 	#calculates the average result of a tuple
     def av(self, valuetuple):
         sum = 0
-        for index, item in enumerate(valuetuple):
+        for index,item in enumerate(valuetuple):
             value = item
             sum += value
         average = sum/len(valuetuple)
@@ -865,4 +867,3 @@ class contextmodel():
         return self.resultpass
     def getsubresult(self):
         return self.subresult
-

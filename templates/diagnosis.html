@@ -23,26 +23,26 @@
         </div>
     </div>
     <div class="container overflow-hidden">
-        <div class="row element" style="padding-left: 20px; padding-right:20px">
+        <div class="row element" style="padding-top:80px; padding-left: 20px; padding-right:20px">
             {% for key1, value1 in result.items() %}
                 {% if key1 != "Long Time Check" %}
                     <div class="col mx-auto" >
                         <div class="card h-100">
                             <div class="card-body">
                                 <h4 class="card-title">{{ key1 }}</h4>
-                                {% for key2, value2 in value1.items() %}
+                                {% for key2, value2 in value1[0].items() %}
                                     <ul class="list-group list-group-flush">
                                     {% if key2 != "Message" and key2 != "Time" %}
                                         <li class="list-group-item">{{ key2|replace('_', ' ') }} : {{ value2 }}</li>
                                     {% endif %}
                                     {% if key2 == "Time" %}
-                                        <li class="list-group-item">Last checked on : {{ value2 }}</li>
+                                        <li class="list-group-item">Last checked on : {{ value2|replace('T', ' ')|replace('Z', '') }}</li>
                                     {% endif %}
                                     </ul>
                                 {% endfor %}
                             </div>
                             <div class="card-body">
-                                <p class="card-text">{{value1["Message"]}}</p>
+                                <p class="card-text">{{value1[0]["Message"]|join('')}}</p>
                             </div>
                         </div>
                     </div>

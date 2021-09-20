@@ -1,13 +1,13 @@
 contextdata:
     Door Lock Program:
         Lock: true
-        Pressure: normal
+        Pressure: toolow
     Drum Motor Program:
         Loudness: normal
-        Rotation_Speed: normal
+        Rotation_Speed: toohigh
         Vibration: normal
     Fan Program:
-        Loudness: normal
+        Loudness: toohigh
         Mass_Air_Flow: normal
         Vibration: normal
     Pump Out Program:
@@ -21,8 +21,8 @@ contextdata:
         Laundry_Fill_Level: normal
         Laundry_Weight: normal
         Washing_Powder_Fill_Level: normal
-        Water_Hardness: normal
-        Temperature: normal
+        Water_Hardness: hard
+        Temperature: high
         Usage_Frequency: normal
         Used_Modes: normal
         Washing_Powder: normal

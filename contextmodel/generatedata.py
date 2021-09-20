@@ -61,11 +61,13 @@ def generate_all_data():
         elif(value_config == False):  
             Pump_Out_Exit_Water_Flow_Ph2.append(0)
         Pump_Out_Exit_Water_Flow_Unit = "true/false"
+        Pump_Out_Exit_Water_Flow_Ph2_Time = now.strftime("%m/%d/%Y, %H:%M:%S")
             
         filename = os.path.dirname(__file__) + "\\contextdata" + "\\" + "Pump Out Program" +"\\" + "Exit_Water_Flow" + "\\" + "Exit_Water_Flow_Ph2" + ".txt"
         with open(filename, "wb") as fp:   #Pickling
             pickle.dump(Pump_Out_Exit_Water_Flow_Ph2, fp)
             pickle.dump(Pump_Out_Exit_Water_Flow_Unit, fp)
+            pickle.dump(Pump_Out_Exit_Water_Flow_Ph2_Time, fp)
         
          
         #################
@@ -135,7 +137,7 @@ def generate_all_data():
         elif(value_config == "toolow"):
             Door_Lock_Program_Pressure_Ph1 = random_data(10, 1000, -2, 2, 1)
             Door_Lock_Program_Pressure_Ph2 = random_data(10, 1100, -2, 2, 1)
-        Door_Lock_Program_Pressure_Unit = "kPa"
+        Door_Lock_Program_Pressure_Unit = "Pa"
         Door_Lock_Program_Pressure_Ph1_Time = now.strftime("%m/%d/%Y, %H:%M:%S")
         Door_Lock_Program_Pressure_Ph2_Time = now.strftime("%m/%d/%Y, %H:%M:%S")
         

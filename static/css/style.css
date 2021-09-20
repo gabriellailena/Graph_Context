@@ -12,7 +12,7 @@ html, body {
  */
 
 header {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.39),rgba(74, 74, 74, 0.8));
+    background-image: linear-gradient(rgba(0, 0, 0, 0.39),rgba(74, 74, 74, 0.8)), url(mobile-app-development.jpg);
     background-size: cover;
     background-position: center;
     height: 100vh;

@@ -3,5 +3,5 @@
 //ASSERT r.uri IS UNIQUE;
 
 CALL n10s.graphconfig.init();
-CALL n10s.onto.import.fetch("file:///C:\\Users\\ilena\\Documents\\INFOTECH\\Master Thesis\\Products\\automated-wash-dryer.owl", "Turtle");
+CALL n10s.onto.import.fetch("file:///C:\\Users\\ilena\\Documents\\INFOTECH\\Master Thesis\\Products\\automated-wash-dryer-system.owl", "Turtle");
 CALL n10s.onto.import.fetch("file:///C:\\Users\\ilena\\Documents\\INFOTECH\\Master Thesis\\Products\\automated-wash-dryer-application.owl", "Turtle");

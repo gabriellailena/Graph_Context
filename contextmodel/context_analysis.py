@@ -1,3 +1,7 @@
+'''This module accesses the system context model from querying and updates to analyze context values, producing inferred
+states, and getting the appropriate message from the application model.
+'''
+
 import json
 import time as sys_time
 import os

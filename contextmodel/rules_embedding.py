@@ -1,3 +1,7 @@
+'''This module generates the state combinations as rules and stores them as data in the application model. Run this
+module by running the server and calling the API on http://localhost:5000/embed_rules
+'''
+
 import sys
 import random
 from neo4j import GraphDatabase

@@ -1,5 +1,5 @@
 """
-This module is meant to pre-process export the SQL data into a .csv file, ready to be imported to
+This module is meant to pre-process and export the SQL data into a .csv file, ready to be imported to
 Neo4j database. The .csv file is then transformed into a context model, stored in a Neo4j graph database.
 """
 
@@ -110,3 +110,12 @@ def sql_to_graph(uri, username, password, file_path, db_name):
         raise
     finally:
         graph_session.close()
+
+# For component testing, un-comment this part before running this module
+'''uri = "neo4j+s://acbe0929.databases.neo4j.io"
+username = "admin"
+password = "admin"
+graph_db = "neo4j"
+out_path = "C:\\Users\\ilena\\Dropbox\\context_data.csv"
+sql_to_graph(uri=uri, username=username, password=password, file_path=out_path,db_name=graph_db)
+'''

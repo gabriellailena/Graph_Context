@@ -95,6 +95,7 @@ def show_usage():
 def show_viz():
 	return render_template('model_visualization.html')
 
+# Run this only one time to embed the state combinations as rules
 @app.route('/embed_rules')
 def embed_rules():
 	rules_to_graph(uri=uri, username=username, password=password, db_name=graph_db)

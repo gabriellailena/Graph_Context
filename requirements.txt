@@ -1,0 +1,16 @@
+Flask==2.0.1
+h5py==3.1.0
+Jinja2==3.0.1
+json5==0.9.5
+jsonschema==3.2.0
+mysql==0.0.2
+mysql-connector-python==8.0.22
+mysqlclient==2.0.2
+numpy==1.18.3
+openpyxl==3.0.5
+pandas==1.1.5
+pandocfilters==1.4.2
+pickleshare==0.7.5
+SQLAlchemy==1.4.14
+Werkzeug==2.0.1
+xlrd==2.0.1

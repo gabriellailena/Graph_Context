@@ -1,0 +1,488 @@
+@prefix : <http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer> .
+
+<http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer> rdf:type owl:Ontology .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#accomplishes
+:accomplishes rdf:type owl:ObjectProperty ;
+              rdfs:domain :Function ;
+              rdfs:range :Goals .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#affects
+:affects rdf:type owl:ObjectProperty ;
+         rdfs:domain :Context ;
+         rdfs:range :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#gets_data_from
+:gets_data_from rdf:type owl:ObjectProperty ;
+                rdfs:domain :Context ;
+                rdfs:range :Device .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#gets_external_data_from
+:gets_external_data_from rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf :gets_data_from ;
+                         rdfs:domain :External ;
+                         rdfs:range :Environment .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#gets_internal_data_from
+:gets_internal_data_from rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf :gets_data_from ;
+                         rdfs:domain :Internal ;
+                         rdfs:range :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#has_actuator_type
+:has_actuator_type rdf:type owl:ObjectProperty ;
+                   rdfs:subPropertyOf owl:topObjectProperty ;
+                   rdfs:domain :Actuating ;
+                   rdfs:range :Actuator .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#has_function
+:has_function rdf:type owl:ObjectProperty ;
+              rdfs:domain :Device ;
+              rdfs:range :Function .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#has_sensor_type
+:has_sensor_type rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf owl:topObjectProperty ;
+                 rdfs:domain :Sensing ;
+                 rdfs:range :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#has_state
+:has_state rdf:type owl:ObjectProperty ;
+           rdfs:domain :Device ;
+           rdfs:range :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#yields
+:yields rdf:type owl:ObjectProperty ;
+        rdfs:domain :Function ;
+        rdfs:range :Context .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Actuating
+:Actuating rdf:type owl:Class ;
+           rdfs:subClassOf :Function .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Actuator
+:Actuator rdf:type owl:Class ;
+          rdfs:subClassOf :Device .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Communication
+:Communication rdf:type owl:Class ;
+               rdfs:subClassOf :Device .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Context
+:Context rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Control
+:Control rdf:type owl:Class ;
+         rdfs:subClassOf :Device .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Device
+:Device rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Environment
+:Environment rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Event
+:Event rdf:type owl:Class ;
+       rdfs:subClassOf :Function .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#External
+:External rdf:type owl:Class ;
+          rdfs:subClassOf :Context ;
+          owl:disjointWith :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Function
+:Function rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Goals
+:Goals rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Inferred
+:Inferred rdf:type owl:Class ;
+          rdfs:subClassOf :Context .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Internal
+:Internal rdf:type owl:Class ;
+          rdfs:subClassOf :Context .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Sensing
+:Sensing rdf:type owl:Class ;
+         rdfs:subClassOf :Function .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#Sensor
+:Sensor rdf:type owl:Class ;
+        rdfs:subClassOf :Device .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#State
+:State rdf:type owl:Class .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#ambient_humidity
+:ambient_humidity rdf:type owl:NamedIndividual ,
+                           :External .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#ambient_humidity_sensor
+:ambient_humidity_sensor rdf:type owl:NamedIndividual ,
+                                  :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#ambient_temperature
+:ambient_temperature rdf:type owl:NamedIndividual ,
+                              :External .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#ambient_temperature_sensor
+:ambient_temperature_sensor rdf:type owl:NamedIndividual ,
+                                     :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#blower
+:blower rdf:type owl:NamedIndividual ,
+                 :Actuator .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#closed
+:closed rdf:type owl:NamedIndividual ,
+                 :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#context_analysis_program
+:context_analysis_program rdf:type owl:NamedIndividual ,
+                                   :Control .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#detect_anomaly
+:detect_anomaly rdf:type owl:NamedIndividual ,
+                         :Event .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#detect_component_failure
+:detect_component_failure rdf:type owl:NamedIndividual ,
+                                   :Goals .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#door_lock
+:door_lock rdf:type owl:NamedIndividual ,
+                    :Actuator .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#drain_pump
+:drain_pump rdf:type owl:NamedIndividual ,
+                     :Actuator .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#drum_motor
+:drum_motor rdf:type owl:NamedIndividual ,
+                     :Actuator .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#drum_speed
+:drum_speed rdf:type owl:NamedIndividual ,
+                     :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#drying
+:drying rdf:type owl:NamedIndividual ,
+                 :Goals .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#entrance_water_flow
+:entrance_water_flow rdf:type owl:NamedIndividual ,
+                              :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#exit_water_flow
+:exit_water_flow rdf:type owl:NamedIndividual ,
+                          :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#flow_ok
+:flow_ok rdf:type owl:NamedIndividual ,
+                  :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#get_maintenance_suggestion
+:get_maintenance_suggestion rdf:type owl:NamedIndividual ,
+                                     :Goals .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#get_optimal_usage_suggestion
+:get_optimal_usage_suggestion rdf:type owl:NamedIndividual ,
+                                       :Goals .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#get_sensor_data
+:get_sensor_data rdf:type owl:NamedIndividual ,
+                          :Sensing .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#high
+:high rdf:type owl:NamedIndividual ,
+               :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#internal_temperature
+:internal_temperature rdf:type owl:NamedIndividual ,
+                               :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#internal_temperature_sensor
+:internal_temperature_sensor rdf:type owl:NamedIndividual ,
+                                      :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#laundry_fill_level
+:laundry_fill_level rdf:type owl:NamedIndividual ,
+                             :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#laundry_fill_level_sensor
+:laundry_fill_level_sensor rdf:type owl:NamedIndividual ,
+                                    :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#loading_weight
+:loading_weight rdf:type owl:NamedIndividual ,
+                         :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#lock_sensor
+:lock_sensor rdf:type owl:NamedIndividual ,
+                      :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#locked
+:locked rdf:type owl:NamedIndividual ,
+                 :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#loudness
+:loudness rdf:type owl:NamedIndividual ,
+                   :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#loudness_sensor
+:loudness_sensor rdf:type owl:NamedIndividual ,
+                          :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#low
+:low rdf:type owl:NamedIndividual ,
+              :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#mass_air_flow
+:mass_air_flow rdf:type owl:NamedIndividual ,
+                        :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#mass_air_flow_sensor
+:mass_air_flow_sensor rdf:type owl:NamedIndividual ,
+                               :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#no_flow
+:no_flow rdf:type owl:NamedIndividual ,
+                  :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#normal
+:normal rdf:type owl:NamedIndividual ,
+                 :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#off
+:off rdf:type owl:NamedIndividual ,
+              :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#on
+:on rdf:type owl:NamedIndividual ,
+             :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#opened
+:opened rdf:type owl:NamedIndividual ,
+                 :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#optimal_frequency
+:optimal_frequency rdf:type owl:NamedIndividual ,
+                            :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#optimal_mode
+:optimal_mode rdf:type owl:NamedIndividual ,
+                       :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#optimal_washing_powder_type
+:optimal_washing_powder_type rdf:type owl:NamedIndividual ,
+                                      :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#optimal_weight
+:optimal_weight rdf:type owl:NamedIndividual ,
+                         :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#pressure
+:pressure rdf:type owl:NamedIndividual ,
+                   :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#pressure_sensor
+:pressure_sensor rdf:type owl:NamedIndividual ,
+                          :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#speed_sensor
+:speed_sensor rdf:type owl:NamedIndividual ,
+                       :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#unlocked
+:unlocked rdf:type owl:NamedIndividual ,
+                   :State .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#usage_frequency
+:usage_frequency rdf:type owl:NamedIndividual ,
+                          :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#used_modes
+:used_modes rdf:type owl:NamedIndividual ,
+                     :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#vibration
+:vibration rdf:type owl:NamedIndividual ,
+                    :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#vibration_sensor
+:vibration_sensor rdf:type owl:NamedIndividual ,
+                           :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#washing
+:washing rdf:type owl:NamedIndividual ,
+                  :Goals .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#washing_powder_fill_level
+:washing_powder_fill_level rdf:type owl:NamedIndividual ,
+                                    :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#washing_powder_fill_level_sensor
+:washing_powder_fill_level_sensor rdf:type owl:NamedIndividual ,
+                                           :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#washing_powder_type
+:washing_powder_type rdf:type owl:NamedIndividual ,
+                              :Inferred .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#water_fill_level
+:water_fill_level rdf:type owl:NamedIndividual ,
+                           :Internal .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#water_flow_sensor
+:water_flow_sensor rdf:type owl:NamedIndividual ,
+                            :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#water_hardness_level
+:water_hardness_level rdf:type owl:NamedIndividual ,
+                               :External .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#water_inlet_valve
+:water_inlet_valve rdf:type owl:NamedIndividual ,
+                            :Actuator .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#water_level_sensor
+:water_level_sensor rdf:type owl:NamedIndividual ,
+                             :Sensor .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#web_server
+:web_server rdf:type owl:NamedIndividual ,
+                     :Communication .
+
+
+###  http://www.semanticweb.org/ias/ontologies/2021/automated-wash-dryer#weight_sensor
+:weight_sensor rdf:type owl:NamedIndividual ,
+                        :Sensor .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :Actuating
+                :Event
+                :Sensing
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :Actuator
+                :Communication
+                :Control
+                :Sensor
+              )
+] .
+
+
+###  Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi
